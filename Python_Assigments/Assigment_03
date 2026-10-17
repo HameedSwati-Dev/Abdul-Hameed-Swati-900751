@@ -1,0 +1,95 @@
+# Q21. Unique Values
+numbers = [10, 20, 10, 30, 40, 20, 50]
+unique_numbers = set(numbers)
+unique_count = len(unique_numbers)
+print("Unique Numbers Set:", unique_numbers)
+print("Count of Unique Elements:", unique_count)
+
+# Q22. Set Operations
+a = {1, 2, 3, 4, 5}
+b = {4, 5, 6, 7, 8}
+union_val = a | b
+intersection_val = a & b
+difference_val = a - b
+symmetric_diff = a ^ b
+print("Union:", union_val)
+print("Intersection:", intersection_val)
+print("A - B:", difference_val)
+print("Symmetric Difference:", symmetric_diff)
+
+# Q23. Add and Remove
+skills = {"Python", "SQL", "AWS"}
+skills.add("Snowflake")
+skills.add("Databricks")
+skills.discard("AWS")
+print("Updated Skills Set:", skills)
+
+# Q24. Common Students
+python_students = {"Ali", "Sara", "Ahmed", "Zain"}
+sql_students = {"Sara", "Ahmed", "Hamza", "Usman"}
+both_courses = python_students & sql_students
+exactly_one = python_students ^ sql_students
+print("Students taking both courses:", both_courses)
+print("Students taking exactly one course:", exactly_one)
+
+# Q25. Subset and Superset
+required_skills = {"Python", "SQL"}
+candidate_skills = {"Python", "SQL", "AWS", "Snowflake"}
+is_subset = required_skills.issubset(candidate_skills)
+is_superset = candidate_skills.issuperset(required_skills)
+print("Are required skills a subset?", is_subset)
+print("Are candidate skills a superset?", is_superset)
+
+# Q26. Missing Numbers
+numbers = {1, 2, 4, 6, 8, 10}
+full_range = set(range(1, 11))
+missing_numbers = full_range - numbers
+print("Missing Numbers (1-10):", missing_numbers)
+
+# Q27. Three-Set Analysis
+python = {"Ali", "Sara", "Ahmed", "Zain"}
+sql = {"Sara", "Ahmed", "Hamza"}
+aws = {"Ahmed", "Zain", "Hamza"}
+in_all_three = python & sql & aws
+python_and_sql_only = (python & sql) - aws
+at_least_two = (python & sql) | (python & aws) | (sql & aws)
+print("In all three:", in_all_three)
+print("Python and SQL only (not AWS):", python_and_sql_only)
+print("At least two courses:", at_least_two)
+
+# Q28. Transaction Analysis
+day1 = {101, 102, 103, 104}
+day2 = {103, 104, 105, 106}
+day3 = {104, 106, 107, 108}
+all_days = day1 & day2 & day3
+pairs = (day1 & day2) | (day2 & day3) | (day1 & day3)
+union_all = day1 | day2 | day3
+exactly_one_day = union_all - pairs
+at_least_two_days = pairs
+print("Appearing on all days:", all_days)
+print("Appearing on exactly one day:", exactly_one_day)
+print("Appearing on at least two days:", at_least_two_days)
+
+# Q29. Access Control
+required_permissions = {"read", "write", "execute"}
+user_permissions = {"read", "write", "delete"}
+missing_perms = required_permissions - user_permissions
+extra_perms = user_permissions - required_permissions
+is_authorized = required_permissions.issubset(user_permissions)
+print("Missing permissions:", missing_perms)
+print("Extra permissions:", extra_perms)
+print("Full authorization status:", is_authorized)
+
+# Q30. Customer Segmentation
+website = {"C1", "C2", "C3", "C4", "C5"}
+mobile = {"C3", "C4", "C6", "C7"}
+store = {"C2", "C4", "C7", "C8"}
+all_platforms = website | mobile | store
+pairs = (website & mobile) | (mobile & store) | (website & store)
+all_three = website & mobile & store
+exactly_one_platform = all_platforms - pairs
+exactly_two_platforms = pairs - all_three
+all_three_platforms = all_three
+print("Exactly one platform:", exactly_one_platform)
+print("Exactly two platforms:", exactly_two_platforms)
+print("All three platforms:", all_three_platforms)
