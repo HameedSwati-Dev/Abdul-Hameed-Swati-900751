@@ -1,0 +1,115 @@
+Q1. Accessing List Elements
+================================================
+numbers = [10, 20, 30, 40, 50, 60, 70]
+first_element = numbers[0]
+middle_element = numbers[len(numbers) // 2]
+last_element = numbers[-1]
+print("First:", first_element)
+print("Middle:", middle_element)
+print("Last:", last_element)
+print("Original List:", numbers)  
+
+Q2. List Slicing
+====================================
+numbers = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50]
+first_five_elements = numbers[:5]
+last_five_elements = numbers[-4:]
+every_second_element = numbers[::2]
+print("First five elements:", first_five_elements)
+print("Last five elements:", last_five_elements)
+print("Every second element:", every_second_element)
+
+Q3. List Modification
+==========================================
+fruits = ["apple", "banana", "cherry", "mango"]
+fruits[1] = "orange"
+fruits.insert(2, "grapes")
+fruits.remove("mango")
+print(fruits)
+
+Q4. Reverse Without reverse()
+===========================
+numbers = [12, 45, 23, 67, 89, 34]
+reversed_numbers = numbers[::-1]
+
+print("Reversed List:", reversed_numbers)
+print("Original List:", numbers)  
+
+Q5. Second Largest Unique Number
+================================
+numbers = [45, 12, 89, 34, 89, 67, 45, 23]
+
+# Step 1: Duplicate numbers hatana
+unique_numbers = set(numbers)  # Result: {12, 23, 34, 45, 67, 89}
+
+# Step 2: Set ko wapas list main badlna
+unique_list = list(unique_numbers)
+
+# Step 3: List ko chote se bade ki taraf sort karna
+unique_list.sort()  # Result:
+
+# Step 4: Aakhir se doosra (second-largest) element nikalna
+second_largest = unique_list[-2]
+
+print("Second Largest Unique Number:", second_largest)
+
+Q6. Rotate a List
+===================
+numbers = [10, 20, 30, 40, 50, 60]
+k = 2
+
+# Slicing se right rotate karne ka tarika
+rotated_list = numbers[-k:] + numbers[:-k]
+
+print("Rotated List:", rotated_list)
+
+Q7. Remove Duplicates, Preserve Order
+==========================
+numbers = [10, 20, 10, 30, 20, 40, 30, 50]
+# dict.fromkeys() duplicates hataye ga aur order sahi rakhe ga
+unique_list = list(dict.fromkeys(numbers))
+
+print("Duplicate Removed:", unique_list)
+
+Q8. Flatten a Nested List
+======================
+data = [[10, 20], [30, 40], [50, 60]]
+
+# List comprehension se flatten karne ka tarika
+flattened = [item for sublist in data for item in sublist]
+
+print("Flattened List:", flattened)
+
+Q9. Extract Data from a Matrix
+matrix = [
+ [10, 20, 30],
+ [40, 50, 60],
+ [70, 80, 90]
+]
+n = len(matrix)
+main_diagonal = [matrix[i][i] for i in range(n)]
+sum_main = sum(main_diagonal)
+
+# 2. Secondary Diagonal extraction & sum
+secondary_diagonal = [matrix[i][n - 1 - i] for i in range(n)]
+sum_secondary = sum(secondary_diagonal)
+
+# 3. Middle Column extraction & sum
+middle_col_index = n // 2 # 3 // 2 ka matlab hai index 1 (beech wala)
+middle_column = [matrix[i][middle_col_index] for i in range(n)]
+sum_middle = sum(middle_column)
+
+print("Main Diagonal:", main_diagonal, "| Sum:", sum_main)
+print("Secondary Diagonal:", secondary_diagonal, "| Sum:", sum_secondary)
+print("Middle Column:", middle_column, "| Sum:", sum_middle)
+
+Q10. List Transformation Challenge
+=============================
+data = [15, 5, 25, 10, 35, 20, 30]
+unique_sorted = sorted(list(set(data)))
+Largest_number = unique_sorted[-3:]
+smallest_number = unique_sorted[:2][::-1]
+final_result = Largest_number + smallest_number
+print("Final Result:", final_result)
+
+
