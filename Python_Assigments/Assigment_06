@@ -1,0 +1,696 @@
+#Task 01: Nested Transaction Analyzer
+def analyze_transactions(transactions):
+    seen_ids = set()
+    customer_totals = {}
+    customer_cats = {}
+
+    for tx in transactions:
+        tx_id = tx.get("id")
+        if tx_id in seen_ids:
+            continue
+        seen_ids.add(tx_id)
+
+        cust = tx.get("customer")
+        if cust not in customer_totals:
+            customer_totals[cust] = 0
+            customer_cats[cust] = {}
+
+        if tx.get("status") == "success":
+            amt = tx.get("amount", 0)
+            cat = tx.get("category")
+            customer_totals[cust] += amt
+            customer_cats[cust][cat] = customer_cats[cust].get(cat, 0) + amt
+
+    report = []
+    for cust, total in customer_totals.items():
+        cats = customer_cats[cust]
+        top_cat = None
+        if cats:
+            top_cat = max(cats, key=cats.get)
+        report.append({
+            "customer": cust,
+            "total_spending": total,
+            "top_category": top_cat
+        })
+
+    report.sort(key=lambda x: (-x["total_spending"], x["customer"]))
+
+    for rank, item in enumerate(report, start=1):
+        item["rank"] = rank
+
+    return report
+
+#Task 02: Longest Valid Window
+def longest_unique_window(text):
+    if not text:
+        return ("", 0, 0)
+
+    last_seen = {}
+    start = 0
+    max_len = 0
+    best_start = 0
+
+    for i, ch in enumerate(text):
+        if ch in last_seen and last_seen[ch] >= start:
+            start = last_seen[ch] + 1
+        last_seen[ch] = i
+        
+        curr_len = i - start + 1
+        if curr_len > max_len:
+            max_len = curr_len
+            best_start = start
+
+    return (text[best_start:best_start + max_len], best_start, max_len)
+
+#Task 03: Recursive JSON Path Explorer
+def find_paths(data, target):
+    paths = []
+
+    def search(curr, current_path):
+        if curr == target and type(curr) is type(target):
+            paths.append(current_path)
+            return
+        
+        if isinstance(curr, dict):
+            for k, v in curr.items():
+                new_path = f"{current_path}.{k}" if current_path else str(k)
+                search(v, new_path)
+        elif isinstance(curr, list):
+            for idx, item in enumerate(curr):
+                new_path = f"{current_path}[{idx}]"
+                search(item, new_path)
+
+    search(data, "")
+    return paths
+
+#Task 04: Dependency Execution Planner
+def plan_dependencies(tasks, dependencies):
+    nodes = set(tasks)
+    in_degree = {t: 0 for t in nodes}
+    graph = {t: [] for t in nodes}
+
+    for u, v in dependencies:
+        if u not in nodes or v not in nodes:
+            raise ValueError(f"Unknown task in dependency: {u} -> {v}")
+        graph[u].append(v)
+        in_degree[v] += 1
+
+    available = [t for t in nodes if in_degree[t] == 0]
+    available.sort()
+
+    order = []
+    while available:
+        curr = available.pop(0)
+        order.append(curr)
+
+        for nxt in graph[curr]:
+            in_degree[nxt] -= 1
+            if in_degree[nxt] == 0:
+                available.append(nxt)
+                available.sort()
+
+    if len(order) != len(nodes):
+        raise ValueError("Cycle detected in task dependencies")
+
+    return order
+
+#Task 05: Expression Validator and Evaluator
+def evaluate_expression(expr):
+    tokens = []
+    i = 0
+    expr = expr.replace(" ", "")
+    
+    while i < len(expr):
+        c = expr[i]
+        if c in "+-*/()":
+            if c == "-" and (i == 0 or expr[i-1] in "(+-*/"):
+                j = i + 1
+                while j < len(expr) and (expr[j].isdigit() or expr[j] == "."):
+                    j += 1
+                if j > i + 1:
+                    tokens.append(float(expr[i:j]))
+                    i = j
+                    continue
+                else:
+                    raise ValueError("Malformed unary minus")
+            tokens.append(c)
+            i += 1
+        elif c.isdigit() or c == ".":
+            j = i
+            while j < len(expr) and (expr[j].isdigit() or expr[j] == "."):
+                j += 1
+            tokens.append(float(expr[i:j]))
+            i = j
+        else:
+            raise ValueError(f"Invalid character: {c}")
+
+    def apply_op(ops, vals):
+        if len(vals) < 2 or not ops:
+            raise ValueError("Invalid expression syntax")
+        b = vals.pop()
+        a = vals.pop()
+        op = ops.pop()
+        if op == "+": vals.append(a + b)
+        elif op == "-": vals.append(a - b)
+        elif op == "*": vals.append(a * b)
+        elif op == "/":
+            if b == 0:
+                raise ZeroDivisionError("Division by zero")
+            vals.append(a / b)
+
+    prec = {"+": 1, "-": 1, "*": 2, "/": 2}
+    vals = []
+    ops = []
+
+    for tok in tokens:
+        if isinstance(tok, float):
+            vals.append(tok)
+        elif tok == "(":
+            ops.append(tok)
+        elif tok == ")":
+            while ops and ops[-1] != "(":
+                apply_op(ops, vals)
+            if not ops:
+                raise ValueError("Mismatched parentheses")
+            ops.pop()
+        else:
+            while ops and ops[-1] != "(" and prec.get(ops[-1], 0) >= prec.get(tok, 0):
+                apply_op(ops, vals)
+            ops.append(tok)
+
+    while ops:
+        if ops[-1] == "(":
+            raise ValueError("Mismatched parentheses")
+        apply_op(ops, vals)
+
+    if len(vals) != 1:
+        raise ValueError("Malformed expression")
+
+    return vals[0]
+
+#Task 06: Banking Ledger with OOP
+import uuid
+
+class Account:
+    def __init__(self, acc_id, balance=0.0):
+        self.acc_id = acc_id
+        self._balance = float(balance)
+        self._statement = []
+
+    @property
+    def balance(self):
+        return self._balance
+
+    @property
+    def statement(self):
+        return list(self._statement)
+
+    def _record(self, action, amount):
+        record = {
+            "tx_id": str(uuid.uuid4())[:8],
+            "action": action,
+            "amount": amount,
+            "resulting_balance": self._balance
+        }
+        self._statement.append(record)
+
+    def deposit(self, amount):
+        if amount <= 0:
+            raise ValueError("Amount must be positive")
+        self._balance += amount
+        self._record("DEPOSIT", amount)
+
+    def withdraw(self, amount):
+        if amount <= 0:
+            raise ValueError("Amount must be positive")
+        if amount > self._balance:
+            raise ValueError("Insufficient funds")
+        self._balance -= amount
+        self._record("WITHDRAWAL", amount)
+
+
+class Bank:
+    def __init__(self):
+        self.accounts = {}
+
+    def create_account(self, acc_id, initial_balance=0.0):
+        if acc_id in self.accounts:
+            raise ValueError("Account already exists")
+        acc = Account(acc_id, initial_balance)
+        self.accounts[acc_id] = acc
+        return acc
+
+    def transfer(self, from_id, to_id, amount):
+        if amount <= 0:
+            raise ValueError("Amount must be positive")
+        if from_id not in self.accounts or to_id not in self.accounts:
+            raise ValueError("Account does not exist")
+
+        src = self.accounts[from_id]
+        dst = self.accounts[to_id]
+
+        if src.balance < amount:
+            raise ValueError("Insufficient funds for transfer")
+
+        src._balance -= amount
+        src._record("TRANSFER_OUT", amount)
+        dst._balance += amount
+        dst._record("TRANSFER_IN", amount)
+#Task 07: Employee Payroll Engine
+from abc import ABC, abstractmethod
+
+class Employee(ABC):
+    def __init__(self, emp_id, name):
+        self.emp_id = emp_id
+        self.name = name
+
+    @abstractmethod
+    def calculate_pay(self):
+        pass
+
+
+class SalariedEmployee(Employee):
+    def __init__(self, emp_id, name, monthly_salary):
+        super().__init__(emp_id, name)
+        self.monthly_salary = monthly_salary
+
+    def calculate_pay(self):
+        return float(self.monthly_salary)
+
+
+class HourlyEmployee(Employee):
+    def __init__(self, emp_id, name, hourly_rate, hours_worked):
+        super().__init__(emp_id, name)
+        self.hourly_rate = hourly_rate
+        self.hours_worked = hours_worked
+
+    def calculate_pay(self):
+        if self.hours_worked <= 40:
+            return self.hours_worked * self.hourly_rate
+        base = 40 * self.hourly_rate
+        overtime = (self.hours_worked - 40) * (self.hourly_rate * 1.5)
+        return base + overtime
+
+
+class CommissionEmployee(Employee):
+    def __init__(self, emp_id, name, base_salary, sales_amount, commission_rate):
+        super().__init__(emp_id, name)
+        self.base_salary = base_salary
+        self.sales_amount = sales_amount
+        self.commission_rate = commission_rate
+
+    def calculate_pay(self):
+        return self.base_salary + (self.sales_amount * self.commission_rate)
+
+
+def generate_payroll_summary(employees):
+    summary = []
+    for emp in employees:
+        summary.append({
+            "id": emp.emp_id,
+            "name": emp.name,
+            "pay": emp.calculate_pay()
+        })
+    return summary
+#Task 08: Cache Decorator with Expiration
+import time
+from functools import wraps
+
+def ttl_cache(seconds):
+    def decorator(func):
+        cache = {}
+        hits = 0
+        misses = 0
+
+        def make_key(args, kwargs):
+            def make_hashable(val):
+                if isinstance(val, (list, set)):
+                    return tuple(make_hashable(x) for x in val)
+                elif isinstance(val, dict):
+                    return tuple(sorted((k, make_hashable(v)) for k, v in val.items()))
+                return val
+
+            h_args = tuple(make_hashable(a) for a in args)
+            h_kwargs = tuple(sorted((k, make_hashable(v)) for k, v in kwargs.items()))
+            return (h_args, h_kwargs)
+
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            nonlocal hits, misses
+            key = make_key(args, kwargs)
+            now = time.monotonic()
+
+            if key in cache:
+                val, timestamp = cache[key]
+                if now - timestamp < seconds:
+                    hits += 1
+                    return val
+
+            res = func(*args, **kwargs)
+            cache[key] = (res, now)
+            misses += 1
+            return res
+
+        def cache_info():
+            return {"hits": hits, "misses": misses, "size": len(cache)}
+
+        wrapper.cache_info = cache_info
+        return wrapper
+
+    return decorator
+#Task 09: Streaming Log Inspector
+def read_errors(filepath):
+    malformed_count = 0
+    with open(filepath, "r", encoding="utf-8") as f:
+        for line_num, line in enumerate(f, start=1):
+            line_str = line.strip()
+            if not line_str:
+                continue
+            parts = line_str.split(" | ")
+            if len(parts) != 3:
+                malformed_count += 1
+                continue
+
+            ts, level, msg = parts[0].strip(), parts[1].strip(), parts[2].strip()
+            if level == "ERROR":
+                yield (line_num, ts, msg)
+
+    read_errors.malformed_count = malformed_count
+
+
+def summarize_errors(filepath):
+    counts = {}
+    for _, ts, _ in read_errors(filepath):
+        date_part = ts.split(" ")[0]
+        counts[date_part] = counts.get(date_part, 0) + 1
+    return counts
+#Task 10: CSV Inventory Reconciliation
+import csv
+
+def process_inventory(inventory_file, movements_file, out_inventory, out_rejected):
+    stock = {}
+    names = {}
+
+    with open(inventory_file, "r", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            sku = row["sku"]
+            stock[sku] = int(row["quantity"])
+            names[sku] = row["name"]
+
+    rejected = []
+
+    with open(movements_file, "r", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            sku = row.get("sku")
+            m_type = row.get("type")
+            try:
+                units = int(row.get("units", 0))
+            except ValueError:
+                rejected.append({**row, "reason": "Invalid units"})
+                continue
+
+            if sku not in stock:
+                rejected.append({**row, "reason": "Unknown SKU"})
+                continue
+
+            if units <= 0:
+                rejected.append({**row, "reason": "Non-positive units"})
+                continue
+
+            if m_type == "IN":
+                stock[sku] += units
+            elif m_type == "OUT":
+                if stock[sku] < units:
+                    rejected.append({**row, "reason": "Insufficient stock"})
+                else:
+                    stock[sku] -= units
+            else:
+                rejected.append({**row, "reason": "Invalid movement type"})
+
+    with open(out_inventory, "w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        writer.writerow(["sku", "name", "quantity"])
+        for sku, qty in stock.items():
+            writer.writerow([sku, names[sku], qty])
+
+    with open(out_rejected, "w", newline="", encoding="utf-8") as f:
+        fieldnames = ["sku", "type", "units", "reason"]
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer.writeheader()
+        for r in rejected:
+            writer.writerow({k: r.get(k, "") for k in fieldnames})
+#Task 11: Multi-File Student Gradebook
+import csv
+
+def process_gradebook(students_file, scores_file, report_file):
+    students = {}
+    with open(students_file, "r", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            students[row["student_id"]] = row["name"]
+
+    scores = {}
+    seen_entries = set()
+
+    with open(scores_file, "r", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            s_id = row["student_id"]
+            subj = row["subject"]
+            marks = float(row["marks"])
+
+            if s_id not in students:
+                continue
+
+            if not (0 <= marks <= 100):
+                continue
+
+            key = (s_id, subj)
+            if key in seen_entries:
+                continue
+            seen_entries.add(key)
+
+            if s_id not in scores:
+                scores[s_id] = []
+            scores[s_id].append(marks)
+
+    records = []
+    for s_id, s_marks in scores.items():
+        avg = sum(s_marks) / len(s_marks)
+        if avg >= 85: grade = "A"
+        elif avg >= 70: grade = "B"
+        elif avg >= 55: grade = "C"
+        elif avg >= 40: grade = "D"
+        else: grade = "F"
+
+        records.append({
+            "student_id": s_id,
+            "name": students[s_id],
+            "average": round(avg, 2),
+            "grade": grade
+        })
+
+    records.sort(key=lambda x: (-x["average"], x["student_id"]))
+
+    for r_idx, rec in enumerate(records, start=1):
+        rec["rank"] = r_idx
+
+    with open(report_file, "w", newline="", encoding="utf-8") as f:
+        fieldnames = ["student_id", "name", "average", "grade", "rank"]
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(records)
+#Task 12: Custom Iterable Range Toolkit
+class ReversibleRange:
+    def __init__(self, start, stop=None, step=1):
+        if stop is None:
+            self.start = 0
+            self.stop = start
+        else:
+            self.start = start
+            self.stop = stop
+
+        if step == 0:
+            raise ValueError("ReversibleRange step argument must not be zero")
+        self.step = step
+
+    def __len__(self):
+        if self.step > 0 and self.start < self.stop:
+            return (self.stop - self.start - 1) // self.step + 1
+        elif self.step < 0 and self.start > self.stop:
+            return (self.start - self.stop - 1) // (-self.step) + 1
+        return 0
+
+    def __iter__(self):
+        curr = self.start
+        if self.step > 0:
+            while curr < self.stop:
+                yield curr
+                curr += self.step
+        else:
+            while curr > self.stop:
+                yield curr
+                curr += self.step
+
+    def __reversed__(self):
+        length = len(self)
+        if length == 0:
+            return
+        last = self.start + (length - 1) * self.step
+        curr = last
+        rev_step = -self.step
+        for _ in range(length):
+            yield curr
+            curr += rev_step
+
+    def __contains__(self, item):
+        if not isinstance(item, int):
+            return False
+        if self.step > 0:
+            if not (self.start <= item < self.stop):
+                return False
+        else:
+            if not (self.stop < item <= self.start):
+                return False
+        return (item - self.start) % self.step == 0
+#Task 13: Booking Conflict Scheduler
+from datetime import datetime
+
+class RoomScheduler:
+    def __init__(self):
+        self.bookings = {}
+        self.booking_ids = set()
+
+    def add_booking(self, booking_id, room, start_dt, end_dt):
+        if booking_id in self.booking_ids:
+            return False, "Duplicate booking ID"
+
+        if end_dt <= start_dt:
+            return False, "End time must be after start time"
+
+        if room not in self.bookings:
+            self.bookings[room] = []
+
+        for b in self.bookings[room]:
+            if b["start"] < end_dt and b["end"] > start_dt:
+                return False, f"Conflict with booking {b['id']}"
+
+        self.booking_ids.add(booking_id)
+        self.bookings[room].append({
+            "id": booking_id,
+            "start": start_dt,
+            "end": end_dt
+        })
+        return True, "Booking accepted"
+#Task 14: Command-Line Contact Manager
+import json
+import os
+
+DB_FILE = "contacts.json"
+
+def load_contacts():
+    if not os.path.exists(DB_FILE):
+        return []
+    try:
+        with open(DB_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except json.JSONDecodeError:
+        print("Warning: Corrupted JSON file found. Starting fresh safely.")
+        return []
+
+def save_contacts(contacts):
+    temp_file = DB_FILE + ".tmp"
+    with open(temp_file, "w", encoding="utf-8") as f:
+        json.dump(contacts, f, indent=4)
+    os.replace(temp_file, DB_FILE)
+
+def add_contact(cid, name, phone, email):
+    contacts = load_contacts()
+    if any(c["id"] == cid for c in contacts):
+        print("Error: Contact ID already exists.")
+        return
+    contacts.append({"id": cid, "name": name, "phone": phone, "email": email})
+    save_contacts(contacts)
+    print("Contact added successfully!")
+
+def search_contacts(query):
+    contacts = load_contacts()
+    q = query.lower()
+    return [c for c in contacts if q in c["name"].lower()]
+
+def list_contacts():
+    return load_contacts()
+#Task 15: Integrated Order Fulfillment System
+import json
+import os
+import unittest
+
+class Product:
+    def __init__(self, pid, name, price, stock):
+        self.pid = pid
+        self.name = name
+        self.price = float(price)
+        self.stock = int(stock)
+
+class Cart:
+    def __init__(self):
+        self.items = {}
+
+    def add_item(self, product, quantity):
+        if quantity <= 0:
+            raise ValueError("Quantity must be positive")
+        self.items[product] = self.items.get(product, 0) + quantity
+
+    def calculate_total(self, discount_pct=0):
+        subtotal = sum(p.price * qty for p, qty in self.items.items())
+        return subtotal * (1 - discount_pct / 100.0)
+
+class Inventory:
+    def __init__(self, catalog_path):
+        self.catalog_path = catalog_path
+        self.products = {}
+        self.load_catalog()
+
+    def load_catalog(self):
+        if os.path.exists(self.catalog_path):
+            with open(self.catalog_path, "r") as f:
+                data = json.load(f)
+                for item in data:
+                    p = Product(item["id"], item["name"], item["price"], item["stock"])
+                    self.products[p.pid] = p
+
+    def validate_cart(self, cart):
+        for prod, qty in cart.items.items():
+            if prod.pid not in self.products:
+                raise ValueError(f"Product {prod.name} not in catalog")
+            if self.products[prod.pid].stock < qty:
+                raise ValueError(f"Insufficient stock for {prod.name}")
+
+    def deduct_stock(self, cart):
+        for prod, qty in cart.items.items():
+            self.products[prod.pid].stock -= qty
+
+# --- Unit Tests ---
+class TestFulfillment(unittest.TestCase):
+    def test_cart_total(self):
+        p1 = Product("P1", "Item 1", 100, 10)
+        cart = Cart()
+        cart.add_item(p1, 2)
+        self.assertEqual(cart.calculate_total(10), 180.0)
+
+    def test_invalid_qty(self):
+        cart = Cart()
+        p1 = Product("P1", "Item 1", 100, 10)
+        with self.assertRaises(ValueError):
+            cart.add_item(p1, -1)
+
+    def test_stock_deduction(self):
+        inv = Inventory("dummy.json")
+        p1 = Product("P1", "Item 1", 100, 5)
+        inv.products["P1"] = p1
+        cart = Cart()
+        cart.add_item(p1, 2)
+        inv.deduct_stock(cart)
+        self.assertEqual(p1.stock, 3)
